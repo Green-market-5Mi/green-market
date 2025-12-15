@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { getAllProducts, updateProductStock } from "../controllers/productController.js";
-import { authenticate } from "../middleware/auth.js";
+import { authenticate, authorizeRoles } from "../middleware/auth.js";
 
 const router = Router();
 
@@ -17,6 +17,7 @@ const router = Router();
  *   get:
  *     summary: Récupérer tous les produits
  *     tags: [Products]
+ *     description: "Rôles autorisés : ADMIN, LOGISTICS, CUSTOMER_SERVICE"
  *     security:
  *       - BearerAuth: []
  *     responses:
@@ -27,7 +28,7 @@ const router = Router();
  *       500:
  *         description: Erreur serveur
  */
-router.get("/", authenticate, getAllProducts);
+router.get("/", authenticate, authorizeRoles("ADMIN", "LOGISTICS", "CUSTOMER_SERVICE"), getAllProducts);
 
 /**
  * @swagger
@@ -35,6 +36,7 @@ router.get("/", authenticate, getAllProducts);
  *   patch:
  *     summary: Mettre à jour le stock d'un produit
  *     tags: [Products]
+ *     description: "Rôles autorisés : ADMIN, LOGISTICS"
  *     security:
  *       - BearerAuth: []
  *     parameters:
@@ -66,6 +68,6 @@ router.get("/", authenticate, getAllProducts);
  *       500:
  *         description: Erreur serveur
  */
-router.patch("/:id/stock", authenticate, updateProductStock);
+router.patch("/:id/stock", authenticate, authorizeRoles("ADMIN", "LOGISTICS"), updateProductStock);
 
 export default router;

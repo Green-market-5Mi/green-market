@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authenticate } from "../middleware/auth.js";
+import { authenticate, authorizeRoles } from "../middleware/auth.js";
 import {
   getOrders,
   getOrderById,
@@ -22,6 +22,7 @@ const router = Router();
  *   get:
  *     summary: Lister toutes les commandes
  *     tags: [Orders]
+ *     description: "Rôles autorisés : ADMIN, LOGISTICS, CUSTOMER_SERVICE"
  *     security:
  *       - BearerAuth: []
  *     responses:
@@ -32,7 +33,7 @@ const router = Router();
  *       500:
  *         description: Erreur serveur
  */
-router.get("/", authenticate, getOrders);
+router.get("/", authenticate, authorizeRoles("ADMIN", "LOGISTICS", "CUSTOMER_SERVICE"), getOrders);
 
 /**
  * @swagger
@@ -40,6 +41,7 @@ router.get("/", authenticate, getOrders);
  *   get:
  *     summary: Récupérer une commande avec ses lignes
  *     tags: [Orders]
+ *     description: "Rôles autorisés : ADMIN, LOGISTICS, CUSTOMER_SERVICE"
  *     security:
  *       - BearerAuth: []
  *     parameters:
@@ -59,7 +61,7 @@ router.get("/", authenticate, getOrders);
  *       500:
  *         description: Erreur serveur
  */
-router.get("/:id", authenticate, getOrderById);
+router.get("/:id", authenticate, authorizeRoles("ADMIN", "LOGISTICS", "CUSTOMER_SERVICE"), getOrderById);
 
 /**
  * @swagger
@@ -67,6 +69,7 @@ router.get("/:id", authenticate, getOrderById);
  *   post:
  *     summary: Créer une commande avec ses lignes
  *     tags: [Orders]
+ *     description: "Rôles autorisés : ADMIN, LOGISTICS"
  *     security:
  *       - BearerAuth: []
  *     requestBody:
@@ -108,7 +111,7 @@ router.get("/:id", authenticate, getOrderById);
  *       500:
  *         description: Erreur serveur
  */
-router.post("/", authenticate, createOrder);
+router.post("/", authenticate, authorizeRoles("ADMIN", "LOGISTICS"), createOrder);
 
 /**
  * @swagger
@@ -116,6 +119,7 @@ router.post("/", authenticate, createOrder);
  *   patch:
  *     summary: Mettre à jour le statut ou le tracking d'une commande
  *     tags: [Orders]
+ *     description: "Rôles autorisés : ADMIN, LOGISTICS"
  *     security:
  *       - BearerAuth: []
  *     parameters:
@@ -148,6 +152,6 @@ router.post("/", authenticate, createOrder);
  *       500:
  *         description: Erreur serveur
  */
-router.patch("/:id", authenticate, updateOrder);
+router.patch("/:id", authenticate, authorizeRoles("ADMIN", "LOGISTICS"), updateOrder);
 
 export default router;

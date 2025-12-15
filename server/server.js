@@ -3,11 +3,16 @@ import cors from "cors";
 import dotenv from "dotenv";
 import swaggerUi from "swagger-ui-express";
 import swaggerJsdoc from "swagger-jsdoc";
+import path from "path";
+import { fileURLToPath } from "url";
 
 import authRoutes from "./routes/authRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import { testConnection } from "./config/db.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
@@ -39,7 +44,8 @@ const swaggerDefinition = {
 
 const swaggerOptions = {
   definition: swaggerDefinition,
-  apis: ["./routes/*.js"],
+  // Glob avec slashs normalisés pour Windows/Linux
+  apis: [path.join(__dirname, "routes", "*.js").replace(/\\/g, "/")],
 };
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);

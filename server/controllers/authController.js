@@ -5,10 +5,13 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+// Rôles autorisés dans l'application
+const ALLOWED_ROLES = ["ADMIN", "LOGISTICS", "CUSTOMER_SERVICE"];
+
 // Inscription utilisateur
 export const register = async (req, res) => {
   try {
-    const { email, password, role = "LOGISTICS" } = req.body;
+  const { email, password, role = "LOGISTICS" } = req.body;
 
     if (!email || !password) {
       return res.status(400).json({ message: "Email et mot de passe requis" });
@@ -20,23 +23,28 @@ export const register = async (req, res) => {
       return res.status(409).json({ message: "Utilisateur déjà existant" });
     }
 
+    const normalizedRole = (role || "LOGISTICS").toUpperCase();
+    if (!ALLOWED_ROLES.includes(normalizedRole)) {
+      return res.status(400).json({ message: "Rôle invalide" });
+    }
+
     // Hachage du mot de passe
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Insertion
     const [result] = await pool.query(
       "INSERT INTO users (email, password, role) VALUES (?, ?, ?)",
-      [email, hashedPassword, role]
+      [email, hashedPassword, normalizedRole]
     );
 
-    const payload = { id: result.insertId, email, role };
+    const payload = { id: result.insertId, email, role: normalizedRole };
     const token = jwt.sign(payload, process.env.JWT_SECRET || "changeme", {
       expiresIn: process.env.JWT_EXPIRES_IN || "1h",
     });
 
     return res.status(201).json({
       message: "Utilisateur créé",
-      user: { id: result.insertId, email, role },
+      user: { id: result.insertId, email, role: normalizedRole },
       token,
     });
   } catch (error) {
