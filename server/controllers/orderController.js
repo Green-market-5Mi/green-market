@@ -1,6 +1,45 @@
 import pool from "../config/db.js";
 import { sendMail } from "../services/mailer.js";
 
+const wrapEmail = ({ title, body }) => `
+  <div style="font-family: Arial, sans-serif; background:#f6f8fb; padding:24px;">
+    <div style="max-width:520px; margin:auto; background:#fff; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.06); overflow:hidden;">
+      <div style="background:#0f7a4b; color:#fff; padding:16px 20px; font-size:18px; font-weight:700;">${title}</div>
+      <div style="padding:20px; color:#1f2933; line-height:1.6; font-size:14px;">${body}</div>
+      <div style="padding:12px 20px; font-size:12px; color:#6b7280; background:#f9fafb;">Notification Green Market</div>
+    </div>
+  </div>`;
+
+const renderOrderSummaryTable = (lines = []) => {
+  if (!Array.isArray(lines) || lines.length === 0) return "<p>Aucune ligne</p>";
+  const rows = lines
+    .map(
+      (l) => `
+        <tr>
+          <td style="padding:8px 10px; border-bottom:1px solid #e5e7eb;">${l.quantity}</td>
+          <td style="padding:8px 10px; border-bottom:1px solid #e5e7eb;">${l.sku || l.product_id}</td>
+          <td style="padding:8px 10px; border-bottom:1px solid #e5e7eb;">${l.name || "Produit"}</td>
+          ${l.price !== undefined ? `<td style="padding:8px 10px; border-bottom:1px solid #e5e7eb;">${Number(l.price).toFixed(2)} €</td>` : ""}
+        </tr>`
+    )
+    .join("");
+
+  const hasPrice = lines.some((l) => l.price !== undefined);
+
+  return `
+    <table style="width:100%; border-collapse:collapse; margin-top:12px; font-size:13px;">
+      <thead>
+        <tr style="background:#f3f4f6;">
+          <th align="left" style="padding:8px 10px;">Qté</th>
+          <th align="left" style="padding:8px 10px;">SKU / ID</th>
+          <th align="left" style="padding:8px 10px;">Produit</th>
+          ${hasPrice ? '<th align="left" style="padding:8px 10px;">Prix</th>' : ""}
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+};
+
 // Récupérer toutes les commandes (simple liste)
 export const getOrders = async (req, res) => {
   try {
@@ -125,19 +164,23 @@ export const createOrder = async (req, res) => {
 
     // Notification (best effort)
     try {
+      const htmlBody = `
+        <p>Une nouvelle commande vient d'être créée.</p>
+        <div style="margin-top:10px; padding:12px; background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px;">
+          <div><strong>Référence :</strong> ${createdOrder.external_reference}</div>
+          <div><strong>Client :</strong> ${createdOrder.customer_name || "N/A"}</div>
+          <div><strong>Statut :</strong> ${createdOrder.status}</div>
+          <div><strong>Lignes :</strong> ${createdLines.length}</div>
+        </div>
+        ${renderOrderSummaryTable(createdLines)}
+        <p style="margin-top:12px;">Merci pour votre confiance.</p>
+      `;
+
       await sendMail({
         to: customer_email,
         subject: `Nouvelle commande ${createdOrder.external_reference}`,
         text: `Commande ${createdOrder.external_reference} créée avec ${createdLines.length} ligne(s). Statut: ${createdOrder.status}.`,
-        html: `<p>Une nouvelle commande a été créée.</p>
-              <ul>
-                <li><strong>Référence</strong>: ${createdOrder.external_reference}</li>
-                <li><strong>Client</strong>: ${createdOrder.customer_name || "N/A"}</li>
-                <li><strong>Statut</strong>: ${createdOrder.status}</li>
-                <li><strong>Lignes</strong>: ${createdLines
-                  .map((l) => `${l.quantity} x ${l.sku || l.product_id}`)
-                  .join(", ")}</li>
-              </ul>`,
+        html: wrapEmail({ title: "Nouvelle commande", body: htmlBody }),
       });
     } catch (mailErr) {
       console.warn("Envoi mail création commande échoué:", mailErr.message);
@@ -198,16 +241,20 @@ export const updateOrder = async (req, res) => {
     // Notification (best effort)
     if (status || tracking_number) {
       try {
+        const htmlBody = `
+          <p>Les informations de la commande ont été mises à jour.</p>
+          <div style="margin-top:10px; padding:12px; background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px;">
+            <div><strong>Référence :</strong> ${updated.external_reference}</div>
+            <div><strong>Statut :</strong> ${updated.status}</div>
+            ${updated.tracking_number ? `<div><strong>Tracking :</strong> ${updated.tracking_number}</div>` : ""}
+          </div>
+        `;
+
         await sendMail({
           to: notify_email,
           subject: `Commande ${updated.external_reference} mise à jour`,
           text: `Statut: ${updated.status}${updated.tracking_number ? `, Tracking: ${updated.tracking_number}` : ""}`,
-          html: `<p>Commande mise à jour.</p>
-                 <ul>
-                   <li><strong>Référence</strong>: ${updated.external_reference}</li>
-                   <li><strong>Statut</strong>: ${updated.status}</li>
-                   ${updated.tracking_number ? `<li><strong>Tracking</strong>: ${updated.tracking_number}</li>` : ""}
-                 </ul>`,
+          html: wrapEmail({ title: "Commande mise à jour", body: htmlBody }),
         });
       } catch (mailErr) {
         console.warn("Envoi mail MAJ commande échoué:", mailErr.message);
