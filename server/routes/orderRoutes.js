@@ -1,0 +1,153 @@
+import { Router } from "express";
+import { authenticate } from "../middleware/auth.js";
+import {
+  getOrders,
+  getOrderById,
+  createOrder,
+  updateOrder,
+} from "../controllers/orderController.js";
+
+const router = Router();
+
+/**
+ * @swagger
+ * tags:
+ *   name: Orders
+ *   description: Gestion des commandes
+ */
+
+/**
+ * @swagger
+ * /api/v1/orders:
+ *   get:
+ *     summary: Lister toutes les commandes
+ *     tags: [Orders]
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Liste des commandes
+ *       401:
+ *         description: Token manquant ou invalide
+ *       500:
+ *         description: Erreur serveur
+ */
+router.get("/", authenticate, getOrders);
+
+/**
+ * @swagger
+ * /api/v1/orders/{id}:
+ *   get:
+ *     summary: Récupérer une commande avec ses lignes
+ *     tags: [Orders]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID de la commande
+ *     responses:
+ *       200:
+ *         description: Commande trouvée
+ *       401:
+ *         description: Token manquant ou invalide
+ *       404:
+ *         description: Commande introuvable
+ *       500:
+ *         description: Erreur serveur
+ */
+router.get("/:id", authenticate, getOrderById);
+
+/**
+ * @swagger
+ * /api/v1/orders:
+ *   post:
+ *     summary: Créer une commande avec ses lignes
+ *     tags: [Orders]
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [external_reference, lines]
+ *             properties:
+ *               external_reference:
+ *                 type: string
+ *               customer_name:
+ *                 type: string
+ *               status:
+ *                 type: string
+ *                 default: PENDING
+ *               tracking_number:
+ *                 type: string
+ *               lines:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   required: [product_id, quantity]
+ *                   properties:
+ *                     product_id:
+ *                       type: integer
+ *                     quantity:
+ *                       type: integer
+ *     responses:
+ *       201:
+ *         description: Commande créée
+ *       400:
+ *         description: Données manquantes/invalides
+ *       401:
+ *         description: Token manquant ou invalide
+ *       409:
+ *         description: Référence externe déjà utilisée
+ *       500:
+ *         description: Erreur serveur
+ */
+router.post("/", authenticate, createOrder);
+
+/**
+ * @swagger
+ * /api/v1/orders/{id}:
+ *   patch:
+ *     summary: Mettre à jour le statut ou le tracking d'une commande
+ *     tags: [Orders]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID de la commande
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               status:
+ *                 type: string
+ *               tracking_number:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Commande mise à jour
+ *       400:
+ *         description: Données manquantes
+ *       401:
+ *         description: Token manquant ou invalide
+ *       404:
+ *         description: Commande introuvable
+ *       500:
+ *         description: Erreur serveur
+ */
+router.patch("/:id", authenticate, updateOrder);
+
+export default router;
