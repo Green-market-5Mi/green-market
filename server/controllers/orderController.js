@@ -169,3 +169,31 @@ export const updateOrder = async (req, res) => {
     return res.status(500).json({ message: "Erreur serveur" });
   }
 };
+
+// Supprimer une commande
+export const deleteOrder = async (req, res) => {
+  const connection = await pool.getConnection();
+  try {
+    const { id } = req.params;
+    await connection.beginTransaction();
+
+    // Supprimer les lignes d'abord pour respecter les contraintes FK éventuelles
+    await connection.query("DELETE FROM order_lines WHERE order_id = ?", [id]);
+    const [result] = await connection.query("DELETE FROM orders WHERE id = ?", [id]);
+
+    if (result.affectedRows === 0) {
+      await connection.rollback();
+      connection.release();
+      return res.status(404).json({ message: "Commande introuvable" });
+    }
+
+    await connection.commit();
+    connection.release();
+    return res.json({ message: "Commande supprimée" });
+  } catch (error) {
+    await connection.rollback();
+    connection.release();
+    console.error("Erreur suppression commande:", error.message);
+    return res.status(500).json({ message: "Erreur serveur" });
+  }
+};

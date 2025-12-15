@@ -5,6 +5,7 @@ import {
   getOrderById,
   createOrder,
   updateOrder,
+  deleteOrder,
 } from "../controllers/orderController.js";
 
 const router = Router();
@@ -153,5 +154,33 @@ router.post("/", authenticate, authorizeRoles("ADMIN", "LOGISTICS"), createOrder
  *         description: Erreur serveur
  */
 router.patch("/:id", authenticate, authorizeRoles("ADMIN", "LOGISTICS"), updateOrder);
+
+/**
+ * @swagger
+ * /api/v1/orders/{id}:
+ *   delete:
+ *     summary: Supprimer une commande
+ *     tags: [Orders]
+ *     description: "Rôles autorisés : ADMIN"
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID de la commande
+ *     responses:
+ *       200:
+ *         description: Commande supprimée
+ *       401:
+ *         description: Token manquant ou invalide
+ *       404:
+ *         description: Commande introuvable
+ *       500:
+ *         description: Erreur serveur
+ */
+router.delete("/:id", authenticate, authorizeRoles("ADMIN"), deleteOrder);
 
 export default router;

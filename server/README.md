@@ -62,10 +62,14 @@ Swagger UI : http://localhost:3001/api-docs
   - POST /api/v1/auth/login
 - Products :
   - GET /api/v1/products (ADMIN, LOGISTICS, CUSTOMER_SERVICE)
+  - POST /api/v1/products (ADMIN, LOGISTICS)
+  - PATCH /api/v1/products/{id} (ADMIN, LOGISTICS)
   - PATCH /api/v1/products/{id}/stock (ADMIN, LOGISTICS)
+  - DELETE /api/v1/products/{id} (ADMIN)
 - Orders :
   - GET /api/v1/orders (ADMIN, LOGISTICS, CUSTOMER_SERVICE)
   - GET /api/v1/orders/{id} (ADMIN, LOGISTICS, CUSTOMER_SERVICE)
   - POST /api/v1/orders (ADMIN, LOGISTICS)
   - PATCH /api/v1/orders/{id} (ADMIN, LOGISTICS)
+  - DELETE /api/v1/orders/{id} (ADMIN)
 
