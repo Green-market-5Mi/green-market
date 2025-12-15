@@ -69,15 +69,3 @@ Swagger UI : http://localhost:3001/api-docs
   - POST /api/v1/orders (ADMIN, LOGISTICS)
   - PATCH /api/v1/orders/{id} (ADMIN, LOGISTICS)
 
-## Exemple de création d'un compte (avec token ADMIN)
-```bash
-TOKEN="<token_admin>"
-curl -X POST "http://localhost:3001/api/v1/auth/register" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $TOKEN" \
-  -d '{"email":"nouveau@exemple.com","password":"secret","role":"LOGISTICS"}'
-```
-
-## Notes
-- Si Swagger n'affiche pas les routes Orders/Products, redémarrez le serveur et faites Ctrl+F5 sur /api-docs.
-- Le premier ADMIN peut être créé en mettant à jour `users.role` via SQL si aucun token admin n'existe encore.
