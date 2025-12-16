@@ -1,5 +1,7 @@
 import React, { useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { api } from '../lib/api'
+import { setAuth } from '../lib/auth'
 
 type LocationState = { from?: { pathname?: string } } | null
 
@@ -10,33 +12,34 @@ export default function Login() {
 
   const redirectTo = useMemo(() => state?.from?.pathname || '/', [state])
 
-  const [email, setEmail] = useState('admin@greenmarket.fr')
-  const [password, setPassword] = useState('admin')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  function onSubmit(e: React.FormEvent) {
+  async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
-
-    // ✅ Front-only : identifiants mock (tu pourras brancher une API plus tard)
-    const ok = email.trim().toLowerCase() === 'admin@greenmarket.fr' && password === 'admin'
-    if (!ok) {
-      setError('Identifiants incorrects. Essayez admin@greenmarket.fr / admin.')
-      return
+    setLoading(true)
+    try {
+      const res = await api.login(email.trim(), password)
+      setAuth(res.token, res.user)
+      navigate(redirectTo, { replace: true })
+    } catch (err: any) {
+      setError(err?.message || 'Connexion impossible')
+    } finally {
+      setLoading(false)
     }
-
-    localStorage.setItem('gm_auth', '1')
-    navigate(redirectTo, { replace: true })
   }
 
   return (
     <div className="auth-shell">
       <div className="auth-card card">
         <div className="auth-brand">
-          <div className="brand-icon">GM</div>
+          <img src="/logo.png" alt="Green Market" className="brand-icon-img" />
           <div>
-            <div className="brand-title">Green Market</div>
-            <div className="brand-subtitle">Connexion au back-office</div>
+            <div className="brand-title">GreenMarket Orders v2</div>
+            <div className="brand-subtitle">Connectez-vous pour gérer les commandes</div>
           </div>
         </div>
 
@@ -67,13 +70,10 @@ export default function Login() {
 
           {error && <div className="auth-error">{error}</div>}
 
-          <button className="auth-submit" type="submit">
-            Se connecter
+          <button className="auth-submit" type="submit" disabled={loading}>
+            {loading ? 'Connexion…' : 'Se connecter'}
           </button>
 
-          <div className="auth-hint">
-            Démo : <strong>admin@greenmarket.fr</strong> / <strong>admin</strong>
-          </div>
         </form>
       </div>
     </div>

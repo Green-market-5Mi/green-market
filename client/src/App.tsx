@@ -1,14 +1,11 @@
 import React from 'react'
-import { NavLink, Route, Routes, Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { NavLink, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import Dashboard from './pages/Dashboard'
 import Orders from './pages/Orders'
 import Stocks from './pages/Stocks'
 import Stats from './pages/Stats'
 import Login from './pages/Login'
-
-function isAuthed() {
-  return localStorage.getItem('gm_auth') === '1'
-}
+import { clearAuth, getUser, isAuthed } from './lib/auth'
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const location = useLocation()
@@ -33,9 +30,10 @@ function NavItem({ to, label }: { to: string; label: string }) {
 
 function Shell() {
   const navigate = useNavigate()
+  const user = getUser()
 
   function logout() {
-    localStorage.removeItem('gm_auth')
+    clearAuth()
     navigate('/login', { replace: true })
   }
 
@@ -43,15 +41,15 @@ function Shell() {
     <div className="app-shell">
       <header className="topbar">
         <div className="topbar-left">
-          <div className="brand-icon">GM</div>
+          <img src="/logo.png" alt="Green Market" className="brand-icon-img" />
           <div>
-            <div className="brand-title">Green Market</div>
-            <div className="brand-subtitle">Gestion des commandes</div>
+            <div className="brand-title">GreenMarket</div>
+            <div className="brand-subtitle">Orders v2</div>
           </div>
         </div>
         <div className="topbar-right">
-          <span className="user-role">Responsable e-commerce</span>
-          <div className="user-pill">Admin</div>
+          <span className="user-role">{user ? user.email : 'Utilisateur'}</span>
+          {user?.role && <div className="user-pill">{user.role}</div>}
           <button className="btn-logout" onClick={logout} type="button">
             Déconnexion
           </button>
@@ -85,10 +83,7 @@ function Shell() {
 export default function App() {
   return (
     <Routes>
-      {/* page publique */}
       <Route path="/login" element={isAuthed() ? <Navigate to="/" replace /> : <Login />} />
-
-      {/* tout le reste protégé */}
       <Route
         path="/*"
         element={
