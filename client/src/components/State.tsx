@@ -1,5 +1,3 @@
-import React from 'react'
-
 export function Loading({ label = 'Chargement…' }: { label?: string }) {
   return (
     <div className="state state--loading">
