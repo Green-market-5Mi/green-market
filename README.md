@@ -1,26 +1,74 @@
-# green-market
+# Green Market
 
-Modèle de README – Projet GreenMarket Orders
+Monorepo front + API logistique pour Green Market. Le front React (Vite + TypeScript) consomme l'API Express qui gère l'authentification JWT, le catalogue produits et les commandes (rôles, notifications email, Swagger).
 
-Modèle de README – Projet GreenMarket Orders
+## Structure
+- `client/` : SPA React 19 (Vite, React Router 7).
+- `server/` : API Node.js/Express + Postgres (Pool `pg`, Swagger).
 
-1. Description
-Décrire en quelques phrases le but de l’application et les types d’utilisateurs concernés.
+## Prérequis
+- Node.js 18+ recommandé.
+- Postgres accessible (ex. Supabase) et URL de connexion.
 
-2. Prérequis
-Préciser les outils nécessaires : langage, framework, base de données, versions minimales, etc.
+## Installation rapide
+```bash
+git clone <repo>
+cd green-market
 
-3. Installation
-Indiquer les commandes à exécuter pour installer les dépendances après avoir cloné le dépôt.
+# Front
+cd client && npm install
 
-4. Configuration
-Décrire les variables d’environnement et fichiers de configuration à adapter (par exemple, paramètres de connexion à la base de données).
+# API
+cd ../server && npm install
+```
 
-5. Lancement
-Indiquer les commandes à exécuter pour lancer l’application ainsi que l’URL à utiliser pour y accéder en local.
+## Variables d'environnement (API)
+Créez `server/.env` :
+```env
+PORT=3001
+BASE_URL=http://localhost:3001/api/v1
+DATABASE_URL=postgres://user:password@host:5432/greenmarket
+JWT_SECRET=supersecretjwt
+JWT_EXPIRES_IN=1h
 
-6. Tests
-Expliquer comment lancer les tests automatisés et ce qu’ils couvrent.
+# Notifications (facultatif)
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=mailer@example.com
+SMTP_PASS=motdepasseSMTP
+MAIL_FROM="GreenMarket <mailer@example.com>"
+MAIL_DEFAULT_TO=ops@example.com
+```
 
-7. Comptes de test
-Fournir, si nécessaire, la liste des comptes de test (identifiants et mots de passe) à utiliser pour les démonstrations.
+## Lancement en développement
+Dans deux terminaux :
+```bash
+# API
+cd server
+npm run dev
+
+# Front
+cd client
+npm run dev
+```
+API : http://localhost:3001/api/v1
+
+Front (Vite) : http://localhost:5173
+
+Swagger : http://localhost:3001/api-docs
+
+## Tests
+API :
+```bash
+cd server
+npm test
+```
+
+## Build
+- Front : `cd client && npm run build`
+- API : `cd server && npm run start` (après build TS via `npm run dev` ou tsx si besoin)
+
+## Notes
+- Les rôles prévus : ADMIN, LOGISTICS, CUSTOMER_SERVICE.
+- La route `POST /api/v1/auth/register` nécessite un token ADMIN (promouvoir un compte via SQL au démarrage).

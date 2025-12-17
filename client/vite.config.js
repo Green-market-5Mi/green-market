@@ -6,8 +6,8 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        // target: 'http://localhost:3001',
-        target: 'https://green-market-order-v2.vercel.app',
+        target: 'http://localhost:3001',
+        // target: 'https://green-market-order-v2.vercel.app',
         changeOrigin: true,
         secure: false,
       },

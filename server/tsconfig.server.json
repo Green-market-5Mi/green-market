@@ -3,9 +3,10 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "esModuleInterop": true,
-    "types": ["node", "express"],
+    "types": ["node", "express", "jest"],
     "skipLibCheck": true,
-    "strict": true
+    "strict": true,
+    "isolatedModules": true
   },
   "include": ["**/*.ts"]
 }
